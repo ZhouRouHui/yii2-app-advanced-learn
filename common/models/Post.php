@@ -50,15 +50,25 @@ class Post extends \yii\db\ActiveRecord
      */
     public function attributeLabels()
     {
+//        return [
+//            'id' => 'ID',
+//            'title' => 'Title',
+//            'content' => 'Content',
+//            'tags' => 'Tags',
+//            'status' => 'Status',
+//            'create_time' => 'Create Time',
+//            'update_time' => 'Update Time',
+//            'author_id' => 'Author ID',
+//        ];
         return [
             'id' => 'ID',
-            'title' => 'Title',
-            'content' => 'Content',
-            'tags' => 'Tags',
-            'status' => 'Status',
-            'create_time' => 'Create Time',
-            'update_time' => 'Update Time',
-            'author_id' => 'Author ID',
+            'title' => '标题',
+            'content' => '内容',
+            'tags' => '标签',
+            'status' => '状态',
+            'create_time' => '创建时间',
+            'update_time' => '更新时间',
+            'author_id' => '作者',
         ];
     }
 
@@ -84,6 +94,9 @@ class Post extends \yii\db\ActiveRecord
 
     /**
      * Gets query for [[Status0]].
+     * 为什么方法名里面会有一个 0?
+     * 首先这部分代码是通过 gii 脚手架生成的，由于当前 post 表中本身有一个字段叫做 status，
+     * 而这里定义的是与 poststatus 表的关联，为了区分字段和关联表，不被混淆，特地加上一个 0 做区分。
      *
      * @return \yii\db\ActiveQuery
      */
