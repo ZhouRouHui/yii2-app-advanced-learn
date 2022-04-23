@@ -22,6 +22,11 @@ use Yii;
  */
 class Comment extends \yii\db\ActiveRecord
 {
+    public function attributes()
+    {
+        return array_merge(parent::attributes(), ['user.username']);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -51,15 +56,25 @@ class Comment extends \yii\db\ActiveRecord
      */
     public function attributeLabels()
     {
+//        return [
+//            'id' => 'ID',
+//            'content' => 'Content',
+//            'status' => 'Status',
+//            'create_time' => 'Create Time',
+//            'userid' => 'Userid',
+//            'email' => 'Email',
+//            'url' => 'Url',
+//            'post_id' => 'Post ID',
+//        ];
         return [
             'id' => 'ID',
-            'content' => 'Content',
-            'status' => 'Status',
-            'create_time' => 'Create Time',
-            'userid' => 'Userid',
-            'email' => 'Email',
-            'url' => 'Url',
-            'post_id' => 'Post ID',
+            'content' => '内容',
+            'status' => '状态',
+            'create_time' => '创建时间',
+            'userid' => '用户',
+            'email' => '邮箱',
+            'url' => '链接地址',
+            'post_id' => '所属文章',
         ];
     }
 
@@ -91,5 +106,52 @@ class Comment extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'userid']);
+    }
+
+    /**
+     * 用 Getter 接口的方式定义一个属性
+     * @return string
+     */
+    public function getBeginning()
+    {
+        $tmpStr = strip_tags($this->content);
+        $tmpLen = mb_strlen($tmpStr);
+        $retStr = mb_substr($tmpStr, 0, 10, 'utf-8');
+        return $tmpLen > 10 ? $retStr . '...' : $retStr;
+    }
+
+    /**
+     * 审核功能
+     * @return bool
+     */
+    public function approve()
+    {
+        $this->status = 2;
+        return $this->save();
+    }
+
+    /**
+     * getter 方式添加属性，获取带审核的评论数量
+     * @return bool|int|string|null
+     */
+    public static function getPendingCommentCount()
+    {
+        return self::find()->where(['status' => 1])->count();
+    }
+
+    /**
+     * 重写 beforeSave，定义 create_time 字段
+     * @param bool $insert
+     * @return bool
+     */
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ($insert) {
+                $this->create_time = time();
+            }
+            return true;
+        }
+        return false;
     }
 }

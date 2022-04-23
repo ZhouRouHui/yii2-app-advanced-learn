@@ -82,8 +82,8 @@ class PostSearch extends Post
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'status' => $this->status,
+            'post.id' => $this->id,
+            'post.status' => $this->status,
             'create_time' => $this->create_time,
             'update_time' => $this->update_time,
             'author_id' => $this->author_id,
