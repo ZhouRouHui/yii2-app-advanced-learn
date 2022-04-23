@@ -1,0 +1,1 @@
+<?phpfunction dump($data){    echo '<pre>';    print_r($data);}function debug($data){    dump($data);    die;}

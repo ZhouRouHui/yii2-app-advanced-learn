@@ -23,6 +23,12 @@ use Yii;
 class Post extends \yii\db\ActiveRecord
 {
     /**
+     * 用于保存数据中原有的 tag 信息
+     * @var $_oldTags string
+     */
+    private $_oldTags;
+
+    /**
      * {@inheritdoc}
      */
     public static function tableName()
@@ -103,5 +109,59 @@ class Post extends \yii\db\ActiveRecord
     public function getStatus0()
     {
         return $this->hasOne(Poststatus::className(), ['id' => 'status']);
+    }
+
+    /**
+     * 重写 save 的声明周期函数
+     * @param bool $insert 表示调用此方法是是否是新创建数据，还是更新数据
+     * @return bool
+     */
+    public function beforeSave($insert)
+    {
+        // 一定要调用父类的 beforeSave 方法，保证父类的代码会被执行
+        if (parent::beforeSave($insert)) {
+            if ($insert) {
+                $this->create_time = time();
+                $this->update_time = time();
+            } else {
+                $this->update_time = time();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 重写 find() 方法生命周期的 afterFind() 方法
+     */
+    public function afterFind()
+    {
+        parent::afterFind();
+        $this->_oldTags = $this->tags;
+    }
+
+    /**
+     * 重写 save() 方法生命周期的 afterSave() 方法，处理标签云相关的功能
+     * @param bool $insert
+     * @param array $changedAttributes
+     * @throws \yii\db\StaleObjectException
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        Tag::updateFrequency($this->_oldTags, $this->tags);
+    }
+
+    /**
+     * 重写 delete() 方法生命周期的 afterDelete() 方法，处理标签云相关的功能
+     * @throws \yii\db\StaleObjectException
+     */
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        Tag::updateFrequency($this->tags, '');
     }
 }

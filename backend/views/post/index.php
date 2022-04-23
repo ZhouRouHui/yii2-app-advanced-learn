@@ -9,7 +9,7 @@ use yii\grid\GridView;
 /* @var $searchModel common\models\PostSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Posts';
+$this->title = '文章管理';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="post-index">
