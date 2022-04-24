@@ -11,6 +11,15 @@ use yii\web\IdentityInterface;
 /**
  * User model
  *
+ * 默认系统会将前后台（backend/frontend）的用户都通过 User 模型保存，用户认证也一起使用这个模型。
+ * 但是一般大型的系统前后台的用户需要分离，所以我们将后台的用户模型放在 Adminuser 类里，这个类就用作前台用户。
+ *
+ * 分离后台的验证类步骤，
+ *      - backend/config/main.php 里面 components.user.identityClass 的配置项，指向到 Adminuser 类
+ *      - 对比 adminuser 和 user 表的字段，缺少的字段补全
+ *      - adminuser 字段补全后，调整 Adminuser 模型类，通过 gii 生成模型的方法得到需要添加的内容
+ *      - 在 Adminuser 中实现 IdentityInterface 接口，可以直接拷贝 User 中的代码
+ *
  * @property integer $id
  * @property string $username
  * @property string $password_hash
