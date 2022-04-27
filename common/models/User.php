@@ -31,6 +31,8 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ *
+ * @property Comment[] $comments
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -65,6 +67,27 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            [['email'], 'unique'],
+            [['email'], 'required'],
+            [['email'], 'email'],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => '用户名',
+            'auth_key' => 'Auth Key',
+            'password_hash' => 'Password Hash',
+            'password_reset_token' => 'Password Reset Token',
+            'email' => 'Email',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
     }
 
@@ -119,7 +142,8 @@ class User extends ActiveRecord implements IdentityInterface
      * @param string $token verify email token
      * @return static|null
      */
-    public static function findByVerificationToken($token) {
+    public static function findByVerificationToken($token)
+    {
         return static::findOne([
             'verification_token' => $token,
             'status' => self::STATUS_INACTIVE
@@ -138,7 +162,7 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
+        $timestamp = (int)substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
     }
@@ -218,5 +242,33 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * Gets query for [[Comments]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getComments()
+    {
+        return $this->hasMany(Comment::className(), ['userid' => 'id']);
+    }
+
+    /**
+     * 返回用户状态内容
+     * @return string[]
+     */
+    public static function allStatus()
+    {
+        return [self::STATUS_ACTIVE => '正常', self::STATUS_DELETED => '已删除'];
+    }
+
+    /**
+     * 返回用户状态字符串
+     * @return string
+     */
+    public function getStatusStr()
+    {
+        return $this->status == self::STATUS_ACTIVE ? '正常' : '已删除';
     }
 }

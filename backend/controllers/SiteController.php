@@ -23,6 +23,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
+                // rules 指定规则，allow 指定是否允许，roles 指定适用于这条规则的用户角色，在 acf 中有两类角色，? 表示访客，@ 表示通过认证的用户
                 'rules' => [
                     [
                         'actions' => ['login', 'error'],

@@ -5,6 +5,7 @@ namespace backend\controllers;
 use common\models\Comment;
 use common\models\CommentSearch;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -137,9 +138,15 @@ class CommentController extends Controller
      * @param $id
      * @return void|\yii\web\Response
      * @throws NotFoundHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionApprove($id)
     {
+        // 权限检查
+        if (!\Yii::$app->user->can('approveComment')) {
+            throw new ForbiddenHttpException('对不起，无权操作');
+        }
+
         $model = $this->findModel($id);
         if ($model->approve()) {
             return $this->redirect(['index']);

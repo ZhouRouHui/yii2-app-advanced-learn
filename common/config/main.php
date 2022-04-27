@@ -9,5 +9,9 @@ return [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
+        // 配置授权组件
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
     ],
 ];

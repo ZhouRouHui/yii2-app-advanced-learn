@@ -1,20 +1,17 @@
 <?php
 
-namespace backend\controllers;
+namespace frontend\controllers;
 
-use backednd\models\SignupForm;
-use common\models\Adminuser;
-use common\models\AdminuserSearch;
-use common\models\AuthAssignment;
-use common\models\AuthItem;
+use common\models\Post;
+use common\models\PostSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * AdminuserController implements the CRUD actions for Adminuser model.
+ * PostController implements the CRUD actions for Post model.
  */
-class AdminuserController extends Controller
+class PostController extends Controller
 {
     /**
      * @inheritDoc
@@ -35,13 +32,13 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Lists all Adminuser models.
+     * Lists all Post models.
      *
      * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new AdminuserSearch();
+        $searchModel = new PostSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
@@ -51,7 +48,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Displays a single Adminuser model.
+     * Displays a single Post model.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
@@ -64,13 +61,13 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Creates a new Adminuser model.
+     * Creates a new Post model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
     public function actionCreate()
     {
-        $model = new Adminuser();
+        $model = new Post();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -86,7 +83,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Updates an existing Adminuser model.
+     * Updates an existing Post model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return string|\yii\web\Response
@@ -106,7 +103,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Deletes an existing Adminuser model.
+     * Deletes an existing Post model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return \yii\web\Response
@@ -120,55 +117,18 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Finds the Adminuser model based on its primary key value.
+     * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Adminuser the loaded model
+     * @return Post the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Adminuser::findOne(['id' => $id])) !== null) {
+        if (($model = Post::findOne(['id' => $id])) !== null) {
             return $model;
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
-    }
-
-    public function actionPrivilege($id)
-    {
-        // 找出所有权限，提供给 checkbox list
-        $allPrivileges = AuthItem::find()->select(['name', 'description'])->where(['type' => 1])
-            ->orderBy('description')->all();
-        $allPrivilegesArray = [];
-        foreach ($allPrivileges as $pri) {
-            $allPrivilegesArray[$pri->name] = $pri->description;
-        }
-
-        // 当前用户的权限
-        $authAssignments = AuthAssignment::find()->select(['item_name'])->where(['user_id' => $id])->all();
-        $AuthAssignmentsArray = [];
-        foreach ($authAssignments as $authAssignment) {
-            array_push($AuthAssignmentsArray, $authAssignment->item_name);
-        }
-
-        // 更新权限
-        if (isset($_POST['newPri'])) {
-            AuthAssignment::deleteAll('user_id=:id', [":id" => $id]);
-            $newPri = $_POST['newPri'];
-            $arrLength = count($newPri);
-            for ($x = 0; $x < $arrLength; $x++) {
-                $aPri = new AuthAssignment();
-                $aPri->item_name = $newPri[$x];
-                $aPri->user_id = $id;
-                $aPri->created_at = time();
-                $aPri->save();
-            }
-            return $this->redirect(['index']);
-        }
-
-        // 渲染表单
-        return $this->render('privilege', ['id' => $id, 'AuthAssignmentsArray' => $AuthAssignmentsArray,
-            'allPrivilegesArray' => $allPrivilegesArray]);
     }
 }

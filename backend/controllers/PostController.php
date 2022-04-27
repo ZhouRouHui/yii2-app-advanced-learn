@@ -4,7 +4,9 @@ namespace backend\controllers;
 
 use common\models\Post;
 use common\models\PostSearch;
+use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -25,6 +27,21 @@ class PostController extends Controller
                     'class' => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
+                    ],
+                ],
+                'access' => [
+                    'class' => AccessControl::className(),
+                    'rules' => [
+                        [
+                            'actions' => ['index', 'view'],
+                            'allow' => true,
+                            'roles' => ['?'],
+                        ],
+                        [
+                            'actions' => ['index', 'view', 'create', 'update'],
+                            'allow' => true,
+                            'roles' => ['@'],
+                        ]
                     ],
                 ],
             ]
@@ -64,9 +81,15 @@ class PostController extends Controller
      * Creates a new Post model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
+     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
+        // 权限检查
+        if (!\Yii::$app->user->can('createPost')) {
+            throw new ForbiddenHttpException('对不起，无权操作');
+        }
+
         $model = new Post();
 
 //        $model->create_time = time();
@@ -91,9 +114,15 @@ class PostController extends Controller
      * @param int $id ID
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
+     * @throws ForbiddenHttpException
      */
     public function actionUpdate($id)
     {
+        // 权限检查
+        if (!\Yii::$app->user->can('updatePost')) {
+            throw new ForbiddenHttpException('对不起，无权操作');
+        }
+
         $model = $this->findModel($id);
 //        $model->update_time = time();
 
@@ -112,9 +141,15 @@ class PostController extends Controller
      * @param int $id ID
      * @return \yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
+     * @throws ForbiddenHttpException
      */
     public function actionDelete($id)
     {
+        // 权限检查
+        if (!\Yii::$app->user->can('deletePost')) {
+            throw new ForbiddenHttpException('对不起，无权操作');
+        }
+
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
