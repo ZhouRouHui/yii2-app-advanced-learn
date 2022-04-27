@@ -11,6 +11,11 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    // 默认首页
+    'defaultRoute' => 'post/index',
+    // 语言
+    'language' => 'zh-CN',
+
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-frontend',

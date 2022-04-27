@@ -2,8 +2,11 @@
 
 namespace frontend\controllers;
 
+use common\models\Comment;
 use common\models\Post;
 use common\models\PostSearch;
+use common\models\Tag;
+use common\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -13,6 +16,8 @@ use yii\filters\VerbFilter;
  */
 class PostController extends Controller
 {
+    // 是否是新评论提交
+    public $added = 0;
     /**
      * @inheritDoc
      */
@@ -38,12 +43,18 @@ class PostController extends Controller
      */
     public function actionIndex()
     {
+        // 标签云数据
+        $tags = Tag::findTagWeights();
+        // 最近评论数据
+        $recentComments = Comment::findRecentComments();
         $searchModel = new PostSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'tags' => $tags,
+            'recentComments' => $recentComments,
         ]);
     }
 
@@ -130,5 +141,42 @@ class PostController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * 文章详情页面
+     * @param $id
+     * @return string
+     * @throws NotFoundHttpException
+     */
+    public function actionDetail($id)
+    {
+        // 准备数据模型
+        $model = $this->findModel($id);
+        $tags = Tag::findTagWeights();
+        $recentComments = Comment::findRecentComments();
+
+        $userMe = User::findOne(\Yii::$app->user->id);
+        $commentModel = new Comment();
+        $commentModel->email = $userMe->email;
+        $commentModel->userid = $userMe->id;
+
+        // 当评论提交时，处理评论
+        if ($commentModel->load(\Yii::$app->request->post())) {
+            $commentModel->status = 1; // pending
+            $commentModel->post_id = $id;
+            if ($commentModel->save()) {
+                $this->added = 1;
+            }
+        }
+
+        // 传输局给视图渲染
+        return $this->render('detail', [
+            'model' => $model,
+            'tags' => $tags,
+            'recentComments' => $recentComments,
+            'commentModel' => $commentModel,
+            'added' => $this->added,
+        ]);
     }
 }

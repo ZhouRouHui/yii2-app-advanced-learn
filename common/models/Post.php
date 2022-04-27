@@ -3,6 +3,7 @@
 namespace common\models;
 
 use Yii;
+use yii\helpers\Html;
 
 /**
  * This is the model class for table "post".
@@ -163,5 +164,48 @@ class Post extends \yii\db\ActiveRecord
     {
         parent::afterDelete();
         Tag::updateFrequency($this->tags, '');
+    }
+
+    /**
+     * 使用 urlManager 组件创建一个 url
+     * @return string
+     */
+    public function getUrl()
+    {
+        return Yii::$app->urlManager->createUrl(['post/detail', 'id' => $this->id, 'title' => $this->title]);
+    }
+
+    /**
+     * 用 Getter 接口的方式定义一个属性
+     * @return string
+     */
+    public function getBeginning($length= 288)
+    {
+        $tmpStr = strip_tags($this->content);
+        $tmpLen = mb_strlen($tmpStr);
+        $retStr = mb_substr($tmpStr, 0, $length, 'utf-8');
+        return $tmpLen > 10 ? $retStr . '...' : $retStr;
+    }
+
+    /**
+     * 获取标签
+     * @return mixed
+     */
+    public function getTagLinks()
+    {
+        $links = [];
+        foreach (Tag::string2array($this->tags) as $tag) {
+            $links[] = Html::a(Html::encode($tag), ['post/index', 'PostSearch[tags]' => $tag]);
+        }
+        return $links;
+    }
+
+    /**
+     * 获取文章的评论条数
+     * @return bool|int|string|null
+     */
+    public function getCommentCount()
+    {
+        return Comment::find()->where(['post_id' => $this->id, 'status' => 2])->count();
     }
 }

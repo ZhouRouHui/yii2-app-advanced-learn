@@ -154,4 +154,14 @@ class Comment extends \yii\db\ActiveRecord
         }
         return false;
     }
+
+    /**
+     * 获取最近的评论
+     * @param int $limit
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function findRecentComments($limit = 10)
+    {
+        return Comment::find()->where(['status' => 2])->orderBy('create_time desc')->limit($limit)->all();
+    }
 }
