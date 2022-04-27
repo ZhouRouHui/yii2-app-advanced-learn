@@ -7,6 +7,7 @@ use common\models\Post;
 use common\models\PostSearch;
 use common\models\Tag;
 use common\models\User;
+use yii\db\Query;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -32,6 +33,43 @@ class PostController extends Controller
                         'delete' => ['POST'],
                     ],
                 ],
+                /**
+                 * 页面缓存配置
+                 */
+                'pageCache' => [
+                    'class' => 'yii\filters\PageCache',
+                    'only' => ['index'],    // 指定当前控制器需要缓存的页面
+                    'duration' => 600,  // 过期时间配置
+                    // 配置缓存内容可以根据一些参数的更改而生成新的缓存
+                    'variations' => [
+                        // 接收 page 参数，根据 page 的不同值生成对应的缓存，解决分页情况下其他页面都只是用第一次缓存的内容的问题
+                        \Yii::$app->request->get('page'),
+                        // 接收 PostSearch 参数，根据 PostSearch 的不同值生成对应的缓存，解决搜索时每次得到的都是第一次搜索缓存的内容的问题
+                        \Yii::$app->request->get('PostSearch'),
+                    ],
+                    // 指定缓存依赖
+                    'dependency' => [
+                        'class' => 'yii\caching\DbDependency',  // 依赖项
+                        'sql' => 'select count(id) from post',  // 依赖条件
+                    ]
+                ],
+
+                /**
+                 * http 缓存配置，也就是 http 304 的缓存
+                 */
+                'httpCache' => [
+                    'class' => 'yii\filters\HttpCache',
+                    'only' => ['detail'],
+                    'lastModified' => function ($action, $params) {
+                        $q = new Query();
+                        return $q->from('post')->max('update_time');
+                    },
+                    'etagSeed' => function ($action, $params) {
+                        $post = $this->findModel(\Yii::$app->request->get('id'));
+                        return serialize([$post->title, $post->content]);
+                    },
+                    'cacheControlHeader' => 'public,max-age=600'
+                ]
             ]
         );
     }
